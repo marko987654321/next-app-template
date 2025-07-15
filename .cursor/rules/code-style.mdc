@@ -1,0 +1,138 @@
+---
+alwaysApply: true
+description: "Code formatting and style guidelines"
+---
+
+# Code Style Guidelines
+
+This project enforces consistent code style through automated tools and conventions.
+
+## Formatting Tools
+
+### Prettier Configuration
+Config: [.prettierrc.mjs](mdc:.prettierrc.mjs)
+- Print width: 100 characters
+- Single quotes for strings
+- Trailing commas for ES5 compatibility
+- Automatic import sorting
+
+### Import Ordering
+Imports are automatically sorted by prettier with this order:
+1. CSS imports (`'.*styles.css$'`)
+2. React (`'^react$'`)
+3. Next.js (`'^next$'`, `'^next/.*$'`)
+4. Built-in modules
+5. Third-party packages
+6. Mantine packages (`'^@mantine/(.*)$'`)
+7. Local imports (`'^@/.*$'`, relative imports)
+8. CSS module imports (`'\\.css$'`)
+
+### Prettier Commands
+- `npm run prettier:check` - Check formatting
+- `npm run prettier:write` - Format all files
+
+## Linting
+
+### ESLint Configuration
+Uses `eslint-config-mantine` with additional rules:
+- TypeScript strict rules
+- React best practices
+- Accessibility checks (jsx-a11y)
+
+### Stylelint Configuration
+Config: [.stylelintrc.json](mdc:.stylelintrc.json)
+- SCSS standard configuration
+- Custom rules for Mantine patterns
+- Allows `:global()` pseudo-class
+
+### Linting Commands
+- `npm run eslint` - Check TypeScript/React
+- `npm run stylelint` - Check CSS/SCSS
+- `npm run lint` - Run both linters
+
+## Naming Conventions
+
+### Files and Directories
+- Components: `PascalCase.tsx` (e.g., `PokemonCard.tsx`)
+- Pages: `page.tsx` (Next.js convention)
+- API routes: `route.ts` (Next.js convention)
+- Types: `kebab-case.ts` (e.g., `pokemon.ts`)
+- CSS modules: `Component.module.css`
+
+### Variables and Functions
+```tsx
+// Variables: camelCase
+const pokemonData = [];
+const isLoading = false;
+
+// Functions: camelCase
+function fetchPokemon() {}
+const handleClick = () => {};
+
+// Constants: UPPER_SNAKE_CASE
+const MAX_POKEMON_PER_PAGE = 20;
+const API_BASE_URL = '/api';
+
+// Components: PascalCase
+function PokemonCard() {}
+export const PokemonList = () => {};
+```
+
+### Interfaces and Types
+```tsx
+// Interfaces: PascalCase with descriptive suffix
+interface PokemonCardProps {}
+interface ApiResponse {}
+interface UserSettings {}
+
+// Types: PascalCase
+type PokemonType = 'fire' | 'water' | 'grass';
+type LoadingState = 'idle' | 'loading' | 'success' | 'error';
+```
+
+## Code Organization
+
+### File Structure
+```tsx
+// 1. Imports (automatically sorted by prettier)
+import '@mantine/core/styles.css';
+import React from 'react';
+import { Button } from '@mantine/core';
+import classes from './Component.module.css';
+
+// 2. Types and interfaces
+interface Props {
+  title: string;
+}
+
+// 3. Component implementation
+export function Component({ title }: Props) {
+  return <div>{title}</div>;
+}
+```
+
+### Function Organization
+```tsx
+export function Component() {
+  // 1. Hooks
+  const [state, setState] = useState();
+  const { data } = useQuery();
+  
+  // 2. Event handlers
+  const handleClick = () => {};
+  
+  // 3. Effects
+  useEffect(() => {}, []);
+  
+  // 4. Render logic
+  return <div />;
+}
+```
+
+## Quality Standards
+- 100-character line limit
+- No console.log in production code
+- Consistent spacing and indentation
+- Descriptive variable names
+- Proper TypeScript types
+- Component props documentation

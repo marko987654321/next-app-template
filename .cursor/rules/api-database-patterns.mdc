@@ -1,0 +1,254 @@
+---
+description: "API route and database interaction patterns using Next.js and Prisma"
+globs: **/api/**/*.ts,lib/*.ts
+---
+
+# API and Database Patterns
+
+Guidelines for developing API routes and database interactions using Next.js App Router and Prisma ORM.
+
+## API Route Structure
+
+### File Organization
+Follow Next.js App Router conventions:
+- `app/api/pokemon/route.ts` - Collection endpoints
+- `app/api/pokemon/[id]/route.ts` - Individual resource endpoints
+- `app/api/pokemon/search/route.ts` - Specialized endpoints
+
+### Route Handler Types
+```tsx
+import { type NextRequest, NextResponse } from 'next/server';
+
+export async function GET(request: NextRequest) {
+  // Handle GET requests
+}
+
+export async function POST(request: NextRequest) {
+  // Handle POST requests
+}
+
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  // Handle PUT requests with parameters
+}
+```
+
+### Request Handling
+```tsx
+export async function GET(request: NextRequest) {
+  try {
+    // Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    
+    // Validate parameters
+    if (page < 1 || limit < 1 || limit > 100) {
+      return NextResponse.json(
+        { error: 'Invalid pagination parameters' },
+        { status: 400 }
+      );
+    }
+    
+    // Database operation
+    const pokemon = await prisma.pokemon.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      include: { types: { include: { type: true } } }
+    });
+    
+    return NextResponse.json({ pokemon, page, limit });
+  } catch (error) {
+    console.error('API Error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+## Database Patterns
+
+### Prisma Client Usage
+Use the centralized Prisma client from [lib/prisma.ts](mdc:lib/prisma.ts):
+```tsx
+import { prisma } from '../../../lib/prisma';
+
+// Always use the shared instance
+const pokemon = await prisma.pokemon.findUnique({
+  where: { id: pokemonId },
+  include: {
+    types: { include: { type: true } },
+    stats: true,
+    abilities: true
+  }
+});
+```
+
+### Query Patterns
+```tsx
+// Pagination with counting
+const [pokemon, total] = await Promise.all([
+  prisma.pokemon.findMany({
+    skip: (page - 1) * limit,
+    take: limit,
+    orderBy: { pokedexId: 'asc' }
+  }),
+  prisma.pokemon.count()
+]);
+
+// Search with filtering
+const pokemon = await prisma.pokemon.findMany({
+  where: {
+    OR: [
+      { name: { contains: query, mode: 'insensitive' } },
+      { pokedexId: parseInt(query) || undefined }
+    ],
+    AND: {
+      generation: generationFilter,
+      isLegendary: legendaryFilter
+    }
+  }
+});
+
+// Complex relations
+const pokemonWithEvolutions = await prisma.pokemon.findUnique({
+  where: { id: pokemonId },
+  include: {
+    evolutions: {
+      include: { toPokemon: true }
+    },
+    evolutionsTo: {
+      include: { fromPokemon: true }
+    }
+  }
+});
+```
+
+### Error Handling
+```tsx
+async function getPokemon(id: string) {
+  try {
+    const pokemon = await prisma.pokemon.findUnique({
+      where: { id: parseInt(id) }
+    });
+    
+    if (!pokemon) {
+      return NextResponse.json(
+        { error: 'Pokemon not found' },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json(pokemon);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Handle known Prisma errors
+      return NextResponse.json(
+        { error: 'Database error', code: error.code },
+        { status: 400 }
+      );
+    }
+    
+    // Handle unknown errors
+    console.error('Unexpected error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+```
+
+## Response Standards
+
+### Success Responses
+```tsx
+// List responses
+interface PokemonListResponse {
+  pokemon: Pokemon[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// Detail responses
+interface PokemonDetailResponse extends Pokemon {
+  types: { type: PokemonType; slot: number }[];
+  stats: PokemonStat[];
+  abilities: PokemonAbility[];
+}
+```
+
+### Error Responses
+```tsx
+interface ApiError {
+  error: string;
+  code?: string;
+  details?: unknown;
+}
+
+// Return consistent error structure
+return NextResponse.json(
+  { error: 'Resource not found' },
+  { status: 404 }
+);
+```
+
+## Performance Guidelines
+
+### Database Optimization
+- Use appropriate indexes defined in [prisma/schema.prisma](mdc:prisma/schema.prisma)
+- Implement pagination for large datasets
+- Use `select` to limit returned fields when possible
+- Use `include` strategically for relations
+
+### Caching Strategies
+```tsx
+// Cache static data
+const cache = new Map();
+
+export async function GET() {
+  const cacheKey = 'pokemon-types';
+  
+  if (cache.has(cacheKey)) {
+    return NextResponse.json(cache.get(cacheKey));
+  }
+  
+  const types = await prisma.pokemonType.findMany();
+  cache.set(cacheKey, types);
+  
+  return NextResponse.json(types);
+}
+```
+
+### Request Validation
+Use Zod for request validation:
+```tsx
+import { z } from 'zod';
+
+const searchSchema = z.object({
+  query: z.string().min(1).max(50),
+  type: z.string().optional(),
+  generation: z.number().int().min(1).max(9).optional()
+});
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  
+  const result = searchSchema.safeParse({
+    query: searchParams.get('query'),
+    type: searchParams.get('type'),
+    generation: searchParams.get('generation') ? parseInt(searchParams.get('generation')!) : undefined
+  });
+  
+  if (!result.success) {
+    return NextResponse.json(
+      { error: 'Invalid request parameters', details: result.error.issues },
+      { status: 400 }
+    );
+  }
+  
+  // Use validated data
+  const { query, type, generation } = result.data;
+}

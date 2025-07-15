@@ -1,0 +1,142 @@
+---
+description: "Testing standards using Jest and React Testing Library"
+globs: *.test.ts,*.test.tsx,*.spec.ts,*.spec.tsx
+---
+
+# Testing Standards
+
+This project uses Jest with React Testing Library for component testing. Follow these patterns for consistent, reliable tests.
+
+## Configuration
+- Jest config: [jest.config.cjs](mdc:jest.config.cjs)
+- Setup file: [jest.setup.cjs](mdc:jest.setup.cjs)
+- Custom render: [test-utils/render.tsx](mdc:test-utils/render.tsx)
+
+## Test Structure
+
+### Naming Convention
+- Test files: `ComponentName.test.tsx`
+- Test suites: `describe('ComponentName', () => {})`
+- Test cases: `it('should do something when condition', () => {})`
+
+### File Organization
+Place tests next to the components they test:
+```
+components/
+  Pokemon/
+    PokemonCard.tsx
+    PokemonCard.test.tsx
+    PokemonCard.story.tsx
+```
+
+## Testing Patterns
+
+### Component Testing
+Use the custom render from test-utils that includes MantineProvider:
+```tsx
+import { render, screen } from '../../test-utils';
+import { PokemonCard } from './PokemonCard';
+
+describe('PokemonCard', () => {
+  const mockPokemon = {
+    id: 1,
+    pokedexId: 25,
+    name: 'Pikachu',
+    // ... other required fields
+  };
+
+  it('should display pokemon name', () => {
+    render(<PokemonCard pokemon={mockPokemon} />);
+    expect(screen.getByText('Pikachu')).toBeInTheDocument();
+  });
+});
+```
+
+### API Route Testing
+Test API routes with proper mocking:
+```tsx
+import { GET } from './route';
+import { prisma } from '../../../lib/prisma';
+
+// Mock Prisma
+jest.mock('../../../lib/prisma', () => ({
+  prisma: {
+    pokemon: {
+      findMany: jest.fn(),
+    },
+  },
+}));
+
+describe('/api/pokemon', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should return pokemon list', async () => {
+    const mockPokemon = [{ id: 1, name: 'Pikachu' }];
+    (prisma.pokemon.findMany as jest.Mock).mockResolvedValue(mockPokemon);
+
+    const request = new Request('http://localhost:3000/api/pokemon');
+    const response = await GET(request);
+    const data = await response.json();
+
+    expect(data.pokemon).toEqual(mockPokemon);
+  });
+});
+```
+
+### User Interactions
+Test user interactions with userEvent:
+```tsx
+import userEvent from '@testing-library/user-event';
+
+it('should call onClick when card is clicked', async () => {
+  const user = userEvent.setup();
+  const handleClick = jest.fn();
+  
+  render(<PokemonCard pokemon={mockPokemon} onClick={handleClick} />);
+  
+  await user.click(screen.getByRole('button'));
+  
+  expect(handleClick).toHaveBeenCalledWith(mockPokemon);
+});
+```
+
+## Testing Guidelines
+
+### What to Test
+- Component rendering with required props
+- User interactions and event handlers
+- Conditional rendering logic
+- API response handling
+- Error states
+- Loading states
+
+### What NOT to Test
+- Implementation details
+- Third-party library internals
+- Styling (unless it affects functionality)
+- Network requests (mock them instead)
+
+### Mocking Strategies
+```tsx
+// Mock Next.js router
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+  }),
+}));
+
+// Mock fetch
+global.fetch = jest.fn(() =>
+  Promise.resolve({
+    json: () => Promise.resolve(mockData),
+  })
+) as jest.Mock;
+```
+
+## Running Tests
+- `npm run jest` - Run all tests
+- `npm run jest:watch` - Watch mode
+- `npm test` - Full test suite with linting and type checking

@@ -1,0 +1,42 @@
+---
+alwaysApply: true
+---
+# Pokédex Project Architecture
+
+This is a Next.js 15 Pokédex application using the app router with Mantine UI components, TypeScript, Prisma ORM, and SQLite database.
+
+## Core Tech Stack
+- **Framework**: Next.js 15 with App Router
+- **UI Library**: Mantine v8.1.2 
+- **Database**: Prisma with SQLite ([prisma/schema.prisma](mdc:prisma/schema.prisma))
+- **Styling**: Mantine theme system + CSS modules + Use inline component parameters for styling and CSS modules when only absolutely required
+- **Testing**: Jest + React Testing Library
+
+## Project Structure
+
+### App Directory ([app/](mdc:app/))
+- Use Next.js App Router conventions
+- Pages go in `app/` with `page.tsx` files
+- API routes in `app/api/` directories
+- Root layout: [app/layout.tsx](mdc:app/layout.tsx)
+
+### Components ([components/](mdc:components/))
+- Organize by feature/domain (Pokemon/, Search/, UI/)
+- Each component gets its own folder with:
+  - `ComponentName.tsx` - Main component
+  - `ComponentName.module.css` - Styles (if needed)
+  - `ComponentName.test.tsx` - Tests
+
+### Types ([types/](mdc:types/))
+- Pokemon types defined in [types/pokemon.ts](mdc:types/pokemon.ts)
+- Keep database models separate from API/UI types
+
+### Database
+- Prisma schema: [prisma/schema.prisma](mdc:prisma/schema.prisma)
+- Database client: [lib/prisma.ts](mdc:lib/prisma.ts)
+
+## Development Standards
+- All components must be TypeScript
+- Use Mantine theme system for consistent styling
+- Follow the established import order from [.prettierrc.mjs](mdc:.prettierrc.mjs)
+- Write tests for components with business logic

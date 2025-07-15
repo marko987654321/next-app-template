@@ -1,0 +1,119 @@
+---
+globs: *.tsx,*.ts
+description: "Mantine UI component patterns and styling conventions"
+---
+
+# Mantine UI Development Patterns
+
+This project uses Mantine v8.1.2 as the primary UI library. Follow these patterns for consistent component development.
+
+## Component Structure
+
+### Imports
+Always import Mantine components from `@mantine/core`:
+```tsx
+import { Button, Group, Text, Title } from '@mantine/core';
+```
+
+Follow the import order defined in [.prettierrc.mjs](mdc:.prettierrc.mjs):
+1. CSS imports first (`'*.css$'`)
+2. React imports
+3. Next.js imports
+4. Third-party libraries
+5. Mantine imports (`'^@mantine/(.*)$'`)
+6. Local imports
+
+### Theme Usage
+- Use the centralized theme from [theme.ts](mdc:theme.ts)
+- Access theme in components via `useMantineTheme()` hook
+- Color scheme toggle implemented in [components/ColorSchemeToggle/ColorSchemeToggle.tsx](mdc:components/ColorSchemeToggle/ColorSchemeToggle.tsx)
+
+### Styling Patterns
+
+#### CSS Modules
+- Use CSS modules for component-specific styles
+- Example: [components/Welcome/Welcome.module.css](mdc:components/Welcome/Welcome.module.css)
+- Import as: `import classes from './Component.module.css'`
+
+#### Mantine Props
+- Use Mantine's style props instead of custom CSS when possible:
+  - `mt="xl"` instead of custom margin
+  - `ta="center"` for text alignment
+  - `c="dimmed"` for text color
+
+#### Responsive Design
+- Use Mantine breakpoints defined in [postcss.config.cjs](mdc:postcss.config.cjs):
+  - `$mantine-breakpoint-xs`: 36em
+  - `$mantine-breakpoint-sm`: 48em
+  - `$mantine-breakpoint-md`: 62em
+  - `$mantine-breakpoint-lg`: 75em
+  - `$mantine-breakpoint-xl`: 88em
+
+## Common Patterns
+
+### Client Components
+Mark components that use hooks as client components:
+```tsx
+'use client';
+import { useMantineColorScheme } from '@mantine/core';
+```
+
+### Component Props
+Use Mantine's built-in prop types when extending components:
+```tsx
+interface Props extends BoxProps {
+  customProp?: string;
+}
+```
+
+### Testing
+Use the custom render from [test-utils/render.tsx](mdc:test-utils/render.tsx) that includes MantineProvider:
+```tsx
+import { render } from '../test-utils';
+```
+
+## Server vs Client Components
+
+### Server Component Limitations
+**CRITICAL**: You cannot use dot notation with Mantine components in server components:
+```tsx
+// ❌ This will NOT work in server components
+import { Button } from '@mantine/core';
+function ServerComponent() {
+  return <Button.Group>...</Button.Group>; // Error!
+}
+
+// ✅ Use explicit imports instead
+import { Button, ButtonGroup } from '@mantine/core';
+function ServerComponent() {
+  return <ButtonGroup>...</ButtonGroup>; // Works!
+}
+```
+
+### Common Dot Notation Alternatives
+```tsx
+// ❌ Server components - Don't use dot notation
+Button.Group → ButtonGroup
+Text.Clamp → TextClamp
+Card.Section → CardSection
+Modal.Header → ModalHeader
+Menu.Item → MenuItem
+
+// ✅ Client components - Dot notation works fine
+'use client';
+// All dot notation works in client components
+```
+
+### When to Use Client Components
+Mark components as client when they:
+- Use Mantine hooks (`useMantineColorScheme`, `useDisclosure`, etc.)
+- Handle user interactions (onClick, onChange, etc.)
+- Use React hooks (useState, useEffect, etc.)
+- Need dot notation component access
+
+## Component Guidelines
+- Prefer Mantine components over custom HTML elements
+- Use Mantine's spacing system (`xs`, `sm`, `md`, `lg`, `xl`)
+- Implement dark/light mode support via theme
+- Keep components responsive by default
+- Use explicit imports in server components, dot notation in client components

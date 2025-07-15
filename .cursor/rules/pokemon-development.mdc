@@ -1,0 +1,111 @@
+---
+description: "Pokemon-specific development guidelines and data patterns"
+---
+
+# Pokémon Development Guidelines
+
+Guidelines for developing Pokemon-related features in this Pokédex application.
+
+## Data Models
+
+### Core Pokemon Interface
+Use the Pokemon interface from [types/pokemon.ts](mdc:types/pokemon.ts):
+```tsx
+import { Pokemon, PokemonType, PokemonStat } from '../types/pokemon';
+```
+
+### Database Schema
+Prisma models are defined in [prisma/schema.prisma](mdc:prisma/schema.prisma):
+- `Pokemon` - Core Pokemon data
+- `PokemonType` - Type information (Fire, Water, etc.)
+- `PokemonStat` - Stats (HP, Attack, Defense, etc.)
+- `PokemonAbility` - Abilities
+- `Evolution` - Evolution chains
+
+## API Development
+
+### Route Structure
+Pokemon API routes should follow this pattern:
+- `app/api/pokemon/route.ts` - List all Pokemon
+- `app/api/pokemon/[id]/route.ts` - Get specific Pokemon
+- `app/api/pokemon/search/route.ts` - Search Pokemon
+
+### Response Patterns
+Use standardized response types:
+```tsx
+// For lists
+export interface PokemonListResponse {
+  pokemon: (Pokemon & { types: { type: PokemonType }[] })[]
+  total: number
+  page: number
+  limit: number
+}
+
+// For individual Pokemon
+export interface PokemonDetailResponse extends Pokemon {
+  types: { type: PokemonType; slot: number }[]
+  stats: PokemonStat[]
+  abilities: PokemonAbility[]
+}
+```
+
+### Error Handling
+Return consistent error responses:
+```tsx
+return NextResponse.json(
+  { error: 'Pokemon not found' },
+  { status: 404 }
+);
+```
+
+## Component Development
+
+### Pokemon Components
+Organize Pokemon components in `components/Pokemon/`:
+- `PokemonCard.tsx` - Display Pokemon in lists
+- `PokemonDetail.tsx` - Full Pokemon information
+- `PokemonTypeTag.tsx` - Type badges
+- `PokemonStats.tsx` - Stat displays
+
+### Image Handling
+Pokemon images are stored as URLs in the database:
+- `spriteUrl` - Default Pokemon sprite
+- `spriteShinyUrl` - Shiny variant sprite  
+- `artworkUrl` - Official artwork
+
+Always provide fallbacks for missing images.
+
+### Type Colors
+Pokemon types should use consistent colors defined in the database `PokemonType.color` field.
+
+## Data Conventions
+
+### IDs and Slugs
+- Use `pokedexId` for National Pokedex numbers (1-1010+)
+- Use `id` for database primary keys
+- Use `slug` for URL-friendly names (e.g., "pikachu", "mr-mime")
+
+### Names and Descriptions
+- Store Pokemon names in proper case ("Pikachu", not "PIKACHU")
+- Descriptions should be clean Pokedex text
+- Support multiple languages if needed
+
+### Stats and Measurements
+- Height in meters (decimal values)
+- Weight in kilograms (decimal values)
+- Stats use standard Pokemon stat names: HP, Attack, Defense, Sp. Attack, Sp. Defense, Speed
+
+## Search and Filtering
+
+### Search Implementation
+Support searching by:
+- Name (fuzzy matching)
+- Pokedex ID
+- Type combinations
+- Generation
+- Legendary/Mythical status
+
+### Performance
+- Implement pagination for large datasets
+- Use database indexes for common queries
+- Cache frequently accessed Pokemon data

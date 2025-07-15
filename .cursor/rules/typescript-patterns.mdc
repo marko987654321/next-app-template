@@ -1,0 +1,131 @@
+---
+globs: *.ts,*.tsx
+description: "TypeScript patterns and type safety guidelines"
+---
+
+# TypeScript Development Patterns
+
+This project uses strict TypeScript configuration. Follow these patterns for type-safe development.
+
+## Configuration
+TypeScript config: [tsconfig.json](mdc:tsconfig.json)
+- Strict mode enabled
+- Path mapping with `@/*` alias
+- Next.js plugin configured
+
+## Type Definitions
+
+### Import Types
+Always import types correctly:
+```tsx
+import type { NextRequest } from 'next/server';
+import { type Pokemon } from '../types/pokemon';
+```
+
+### Component Props
+Define explicit props interfaces:
+```tsx
+interface PokemonCardProps {
+  pokemon: Pokemon;
+  onClick?: (pokemon: Pokemon) => void;
+  variant?: 'default' | 'compact';
+}
+
+export function PokemonCard({ pokemon, onClick, variant = 'default' }: PokemonCardProps) {
+  // component implementation
+}
+```
+
+### API Types
+Use strong typing for API responses:
+```tsx
+import { type NextRequest, NextResponse } from 'next/server';
+import type { PokemonListResponse } from '../../../types/pokemon';
+
+export async function GET(request: NextRequest): Promise<NextResponse<PokemonListResponse>> {
+  // implementation
+}
+```
+
+## Database Types
+
+### Prisma Integration
+Use Prisma-generated types when possible:
+```tsx
+import { type Pokemon as PrismaPokemon } from '@prisma/client';
+import { prisma } from '../../lib/prisma';
+```
+
+### Type Extensions
+Extend Prisma types for API responses:
+```tsx
+interface PokemonWithTypes extends Pokemon {
+  types: { type: PokemonType }[];
+}
+```
+
+## Error Handling
+
+### Type-Safe Errors
+Define error types for consistent handling:
+```tsx
+interface ApiError {
+  error: string;
+  code?: string;
+  details?: unknown;
+}
+
+function isApiError(error: unknown): error is ApiError {
+  return typeof error === 'object' && error !== null && 'error' in error;
+}
+```
+
+### Async Error Handling
+Use proper error types with async operations:
+```tsx
+async function fetchPokemon(id: string): Promise<Pokemon | null> {
+  try {
+    const pokemon = await prisma.pokemon.findUnique({ where: { id: parseInt(id) } });
+    return pokemon;
+  } catch (error) {
+    console.error('Database error:', error);
+    return null;
+  }
+}
+```
+
+## React Patterns
+
+### Hooks Typing
+Type custom hooks properly:
+```tsx
+function usePokemon(id: string): { pokemon: Pokemon | null; loading: boolean; error: string | null } {
+  const [pokemon, setPokemon] = useState<Pokemon | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // implementation
+  
+  return { pokemon, loading, error };
+}
+```
+
+### Event Handlers
+Type event handlers explicitly:
+```tsx
+const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  event.preventDefault();
+  // handle click
+};
+
+const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  setValue(event.target.value);
+};
+```
+
+## Best Practices
+- Avoid `any` types - use `unknown` instead
+- Use strict null checks
+- Prefer type assertions with type guards
+- Use const assertions for immutable data
+- Define union types for controlled values
