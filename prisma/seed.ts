@@ -1,4 +1,4 @@
-import { seedPokemonTypes, cleanup } from '../lib/seed-utils';
+import { seedPokemonTypes, seedPokemon, cleanup } from '../lib/seed-utils';
 
 async function main() {
   console.log('🌱 Starting database seeding...');
@@ -6,6 +6,9 @@ async function main() {
   try {
     // Step 1: Seed Pokemon Types
     await seedPokemonTypes();
+    
+    // Step 2: Seed Pokemon (First 151)
+    await seedPokemon(151);
     
     console.log('🎉 Database seeding completed successfully!');
   } catch (error) {
