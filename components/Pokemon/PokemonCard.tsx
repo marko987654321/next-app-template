@@ -3,6 +3,7 @@
 import { Badge, Card, CardSection, Group, Image, Stack, Text, Title } from '@mantine/core';
 import { type Pokemon, type PokemonType } from '../../types/pokemon';
 import classes from './PokemonCard.module.css';
+import { TypeBadge } from './TypeBadge';
 
 interface PokemonCardProps {
   pokemon: Pokemon & { 
@@ -108,15 +109,11 @@ export function PokemonCard({
           {pokemon.types
             .sort((a, b) => a.slot - b.slot)
             .map(({ type }) => (
-              <Badge
+              <TypeBadge
                 key={type.id}
-                color={type.color || getTypeColor(type.name)}
-                variant="filled"
+                type={type}
                 size={variant === 'compact' ? 'sm' : 'md'}
-                className={classes.typeBadge}
-              >
-                {type.name}
-              </Badge>
+              />
             ))}
         </Group>
 

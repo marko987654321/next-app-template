@@ -4,10 +4,12 @@ import type { PokemonDetailResponse } from '../../../../types/pokemon';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ): Promise<NextResponse<PokemonDetailResponse | { error: string }>> {
   try {
-    const pokemonId = parseInt(params.id);
+    // In Next.js 15, params is now a Promise that needs to be awaited
+    const { id } = await params;
+    const pokemonId = parseInt(id);
 
     // Validate ID parameter
     if (isNaN(pokemonId) || pokemonId < 1) {

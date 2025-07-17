@@ -1,0 +1,89 @@
+.typeBadge {
+    font-weight: 600;
+    border-radius: 20px;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    user-select: none;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .typeBadge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0));
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  
+  .clickable {
+    cursor: pointer;
+    transform: scale(1);
+  }
+  
+  .clickable:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    filter: brightness(1.1);
+  }
+  
+  .clickable:active {
+    transform: scale(0.98);
+  }
+  
+  .icon {
+    margin-right: 4px;
+    font-size: 0.8em;
+    display: inline-block;
+  }
+  
+  /* Dark mode adjustments */
+  [data-mantine-color-scheme='dark'] .typeBadge {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  [data-mantine-color-scheme='dark'] .clickable:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+  
+  /* Size-specific styles */
+  .typeBadge[data-size='xs'] {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+  
+  .typeBadge[data-size='sm'] {
+    font-size: 11px;
+    padding: 4px 10px;
+  }
+  
+  .typeBadge[data-size='md'] {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+  
+  .typeBadge[data-size='lg'] {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+  
+  .typeBadge[data-size='xl'] {
+    font-size: 16px;
+    padding: 10px 20px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 48em) {
+    .typeBadge {
+      font-size: 11px;
+      padding: 4px 10px;
+    }
+    
+    .clickable:hover {
+      transform: scale(1.02);
+    }
+  }

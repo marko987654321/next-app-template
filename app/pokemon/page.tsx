@@ -17,6 +17,8 @@ import {
 import { IconSearch, IconX } from '@tabler/icons-react';
 import { PokemonCard } from '../../components/Pokemon/PokemonCard';
 import { type Pokemon, type PokemonType } from '../../types/pokemon';
+import { useRouter } from 'next/navigation';
+import { LoadingSpinner } from '../../components/UI/LoadingSpinner';
 
 interface PokemonWithTypes extends Pokemon {
   types: { type: PokemonType; slot: number }[];
@@ -39,6 +41,7 @@ const POKEMON_TYPES = [
 ];
 
 export default function PokemonListPage() {
+  const router = useRouter();
   const [pokemon, setPokemon] = useState<PokemonWithTypes[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -106,18 +109,11 @@ export default function PokemonListPage() {
   };
 
   const handlePokemonClick = (pokemon: Pokemon) => {
-    // TODO: Navigate to Pokemon detail page
-    console.log('Pokemon clicked:', pokemon.name);
+    router.push(`/pokemon/${pokemon.id}`);
   };
 
   if (loading && pokemon.length === 0) {
-    return (
-      <Container size="xl" py="xl">
-        <Center h={400}>
-          <Loader size="lg" />
-        </Center>
-      </Container>
-    );
+    return <LoadingSpinner />;
   }
 
   return (

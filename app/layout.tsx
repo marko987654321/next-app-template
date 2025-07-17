@@ -16,13 +16,18 @@ import {
 import Link from 'next/link';
 import { ColorSchemeToggle } from '../components/ColorSchemeToggle/ColorSchemeToggle';
 import { theme } from '../theme';
+import { ErrorBoundary } from '@/components/UI/ErrorBoundary';
 
 export const metadata = {
   title: 'Pokédex - Generation 1',
   description: 'Complete Pokédex for Generation 1 Pokémon (001-151)',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" {...mantineHtmlProps}>
       <head>
@@ -57,7 +62,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             
             <AppShellMain>
               <Container size="xl">
-                {children}
+                <ErrorBoundary>
+                  {children}
+                </ErrorBoundary>
               </Container>
             </AppShellMain>
           </AppShell>
