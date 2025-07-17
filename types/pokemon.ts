@@ -48,8 +48,23 @@ export interface PokemonListResponse {
 
 export interface PokemonDetailResponse extends Pokemon {
     types: { type: PokemonType; slot: number }[]
-    abilities: { ability: PokemonAbility; slot: number }[]
-    stats: PokemonStat[]
+    stats: { stat: PokemonStat; baseStat: number; effort: number }[]
+    abilities: { ability: PokemonAbility; isHidden: boolean; slot: number }[]
+    moves: { 
+        move: { 
+            id: number
+            name: string
+            type: string
+            power?: number
+            accuracy?: number
+            pp: number
+        }
+        level: number
+        learnMethod: {
+            id: number
+            name: string
+        }
+    }[]
 }
 
 export interface SearchResponse {
